@@ -213,14 +213,65 @@ public class MakeCube : Editor
 
         }
         // odd number of sides:
-        int totalSides = MathF.Floor(3/2.0f);
-        for (int i = 0; i< 27; i++)
+        int totalSides = Mathf.FloorToInt(3/2.0f);
+        // one row:
+        int cubeIndex = 0;
+        float transformOffSet = totalSides%2 == 1? 0f:0.5f; 
+        for (int i = -totalSides; i<= totalSides; i++) // x
         {
-             
+            for (int j = -totalSides; j<=totalSides ; j++) //z
+            {
+                for (int k = -totalSides; k<=totalSides; k++) //y
+                {
+                    allCubes[cubeIndex].transform.localPosition = new Vector3(transformOffSet + i,transformOffSet + k,transformOffSet + j);
+                    cubeIndex++;
+                }
+            }
 
         }
          
         
     }
 
+    public static void MakeNSidedRubik(int length){
+ 
+        GameObject mainCube = new GameObject(length+"-Sided cube"); 
+        // odd number of sides:
+        int totalSides = Mathf.FloorToInt(length/2.0f);
+        // one row: 
+        float transformOffSet = length%2 == 1? 0f:0.5f; 
+        if (length%2 == 1)
+        {
+            for (int i = -totalSides; i<= totalSides; i++) // x
+            {
+                for (int j = -totalSides; j<=totalSides ; j++) //z
+                {
+                    for (int k = -totalSides; k<=totalSides; k++) //y
+                    {
+                        GameObject newcube = GenerateCube();
+                        newcube.transform.SetParent(mainCube.transform); 
+                        newcube.transform.localPosition = new Vector3(transformOffSet + i,transformOffSet + k,transformOffSet + j); 
+                    }
+                }
+
+            }
+        } else {
+            for (int i = -totalSides; i< totalSides; i++) // x
+            { 
+                for (int j = -totalSides; j<totalSides ; j++) //z
+                { 
+                    for (int k = -totalSides; k<totalSides; k++) //y
+                    { 
+                        GameObject newcube = GenerateCube();
+                        newcube.transform.SetParent(mainCube.transform); 
+                        newcube.transform.localPosition = new Vector3(i + transformOffSet,k + transformOffSet, j + transformOffSet); 
+                    }
+                }
+
+            }
+        }
+
+         
+        
+    }
 }
