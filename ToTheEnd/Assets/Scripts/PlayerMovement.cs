@@ -6,6 +6,9 @@ using UnityEngine.UI;
 public class PlayerMovement : MonoBehaviour
 {
     // Start is called before the first frame update
+    [HideInInspector]
+    public SpawnMap MainController;
+
     public RectTransform Player;
     private Vector2 targetPosition;
     public Vector2 oldPosition; // for enemies -- find the best movemnt to stalk player.
@@ -32,7 +35,9 @@ public class PlayerMovement : MonoBehaviour
             if (Player.anchoredPosition == targetPosition)
             {
                 movingPlayer = false;
-                ReadSides();
+                //ReadSides();
+                // enemy turn to move:
+                MainController.PlayerHasMoved();
             }
         }
     }
@@ -46,15 +51,15 @@ public class PlayerMovement : MonoBehaviour
     IEnumerator readSides()
     {
         yield return new WaitForSeconds(0.5f);
-        Debug.Log("check positions");
+        //Debug.Log("check positions");
         RaycastHit2D hit = Physics2D.Raycast(Player.transform.position + Vector3.up*20, Vector2.up,30);
-        canMoveUp = hit.collider != null;
+        canMoveUp = hit.collider != null && hit.collider.tag == "Tile";
          hit = Physics2D.Raycast(Player.transform.position + Vector3.down * 20, Vector2.down * 20, 30); 
-        canMoveDown = hit.collider != null;
+        canMoveDown = hit.collider != null && hit.collider.tag == "Tile";
          hit = Physics2D.Raycast(Player.transform.position + Vector3.left * 20, Vector2.left * 20, 30); 
-        canMoveLeft = hit.collider != null;
+        canMoveLeft = hit.collider != null && hit.collider.tag == "Tile";
          hit = Physics2D.Raycast(Player.transform.position + Vector3.right * 20, Vector2.right * 20, 30); 
-        canMoveRight = hit.collider != null;
+        canMoveRight = hit.collider != null && hit.collider.tag == "Tile";
  
         // update buttons:
         UpdateButtonInteractivity();
@@ -83,6 +88,7 @@ public class PlayerMovement : MonoBehaviour
         movingPlayer = true;
         oldPosition = Player.anchoredPosition;
         targetPosition = Player.anchoredPosition + Vector2.up * 50;
+        MainController.Refocus();
 
     }
     public void MoveDown()
@@ -91,6 +97,8 @@ public class PlayerMovement : MonoBehaviour
         movingPlayer = true;
         oldPosition = Player.anchoredPosition;
         targetPosition = Player.anchoredPosition + Vector2.down * 50;
+        MainController.Refocus();
+
     }
     public void MoveLeft()
     {
@@ -98,6 +106,8 @@ public class PlayerMovement : MonoBehaviour
         movingPlayer = true;
         oldPosition = Player.anchoredPosition;
         targetPosition = Player.anchoredPosition + Vector2.left * 50;
+        MainController.Refocus();
+
     }
     public void MoveRight()
     {
@@ -105,6 +115,8 @@ public class PlayerMovement : MonoBehaviour
         movingPlayer = true;
         oldPosition = Player.anchoredPosition;
         targetPosition = Player.anchoredPosition + Vector2.right * 50;
+        MainController.Refocus();
+
     }
 
 

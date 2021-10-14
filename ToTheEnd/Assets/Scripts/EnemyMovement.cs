@@ -9,7 +9,7 @@ public class EnemyMovement : MonoBehaviour
     private RectTransform rectTransform;
 
     // potential actions for the enemy:
-    private Vector2[] Directions = new Vector2[] { Vector2.up, Vector2.down, Vector2.left, Vector2.right };
+    private Vector2[] Directions = new Vector2[] { Vector2.up, Vector2.down , Vector2.left , Vector2.right  };
     private Vector2 selectedMove = new Vector2();
     private float selectedMoveValue = 0f;
 
@@ -44,21 +44,32 @@ public class EnemyMovement : MonoBehaviour
         selectedMove = Vector2.zero;
         selectedMoveValue = 0f;
         float newMoveValue = 0f;
+        //Debug.Log(rectTransform.anchoredPosition);
+
         for (int i = 0; i<Directions.Length; i++)
         {
-            newMoveValue = calculateMoveValue(currPlayer, rectTransform.anchoredPosition, Directions[i]);
+            // check if user can move in that direction first:
+
+            RaycastHit2D hit = Physics2D.Raycast(rectTransform.transform.position + (Vector3)Directions[i] * 20, (Vector3)Directions[i], 30); 
+            if (hit.collider == null) { continue; }
+            else if (hit.collider.tag == "Wall") { continue; }
+            //Debug.Log(Directions[i]);
+            newMoveValue = calculateMoveValue(currPlayer, rectTransform.anchoredPosition, Directions[i] * 50);
             if (newMoveValue == selectedMoveValue && selectedMoveValue !=0)
             {
                 // more than one movement will work, check if this move should be replaced:
+                /* // old: move closer to old position
                 if (calculateMoveValue(oldPlayerPosition, rectTransform.anchoredPosition, selectedMove) < calculateMoveValue(oldPlayerPosition, rectTransform.anchoredPosition, Directions[i]))
                 {
                     selectedMoveValue = newMoveValue;
                     selectedMove = Directions[i];
-                }
+                }*/
+                // newer decision: mirror player movement:
+                selectedMove = Vector2.ClampMagnitude(currPlayer - oldPlayerPosition,1f)*50;
             } else if (newMoveValue > selectedMoveValue) // can choose not to move, if all available are negative
             {
                 selectedMoveValue = newMoveValue;
-                selectedMove = Directions[i];
+                selectedMove = Directions[i] * 50;
             }
         }
 

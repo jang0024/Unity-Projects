@@ -13,7 +13,7 @@ public class SpawnMap : MonoBehaviour
 
     private List<GameObject> AllBG = new List<GameObject>();
     private GameObject Player;
-    private List<GameObject> Enemies = new List<GameObject>();
+    //private List<GameObject> Enemies = new List<GameObject>();
     //public Vector2 PlayerLoc = new Vector2();
 
     // Screen/UI
@@ -22,16 +22,34 @@ public class SpawnMap : MonoBehaviour
     public RectTransform ScrollRect;
 
     // player controls
-    public PlayerMovement PlayerLoc;
+    public PlayerMovement PlayerController;
+    public EnemyController EnemyController;
 
+    // block settings:
+    public enum TileSides
+    {
+        Up = 0,
+        Down,
+        Left,
+        Right
+    };
+    // keep track of blocks:
+    private List<GameObject> allWalls = new List<GameObject>();
+     
     // Start is called before the first frame update
     void Start()
     {
         TileBackground(12,10);
-        SpawnPC(9,1);
-        SpawnEnemy(1,3);
+        SpawnPC(5,5);
+        SpawnEnemy(5,7);
+        //SpawnEnemy(2,2);
         SaveScreenSize();
         Refocus();
+        PlayerController.ReadSides();
+        SpawnSingleBlock(5, 6, TileSides.Up);
+        SpawnSingleBlock(5, 7, TileSides.Down);
+        SpawnSingleBlock(5, 8, TileSides.Left);
+        SpawnSingleBlock(5, 9, TileSides.Right);
     } 
 
     void TileBackground(int height, int width){
@@ -55,7 +73,8 @@ public class SpawnMap : MonoBehaviour
         RectTransform singleTileRect = Player.GetComponent<RectTransform>();
         singleTileRect.anchoredPosition = new Vector2(25+ 50*row, 25 + 50*col);
         Player.SetActive(true);
-        PlayerLoc.Player = singleTileRect;
+        PlayerController.Player = singleTileRect;
+        PlayerController.MainController = this;
         //PlayerLoc.x = singleTileRect.anchoredPosition[0];
         //PlayerLoc.y = singleTileRect.anchoredPosition[1];
 
@@ -65,9 +84,54 @@ public class SpawnMap : MonoBehaviour
         GameObject singleTile = GameObject.Instantiate(Enemy,Enemy.transform.parent);
         singleTile.SetActive(true);
         RectTransform singleTileRect = singleTile.GetComponent<RectTransform>();
-        singleTileRect.anchoredPosition = new Vector2(25+ 50*col, 25 + 50*col);
-        Enemies.Add(singleTile);
+        singleTileRect.anchoredPosition = new Vector2(25+ 50* row, 25 + 50*col);
+        //Enemies.Add(singleTile);
+        EnemyController.AddNewEnemy(singleTile.GetComponent<EnemyMovement>());
 
+    }
+
+    void SpawnSingleBlock(int row, int col, TileSides side)
+    {
+        GameObject singleWall;
+        RectTransform singleWallRect;
+        switch (side)
+        {
+            case TileSides.Up:
+                singleWall = Instantiate(Wall, Wall.transform.parent);
+                singleWall.SetActive(true);
+                singleWallRect = singleWall.GetComponent<RectTransform>();
+                singleWallRect.anchoredPosition = new Vector2(25 + 50 * row, 50 + 50 * col);
+                singleWallRect.eulerAngles = new Vector3(0,0,90);
+                allWalls.Add(singleWall);
+                break; 
+            case TileSides.Down:
+                singleWall = Instantiate(Wall, Wall.transform.parent);
+                singleWall.SetActive(true);
+                singleWallRect = singleWall.GetComponent<RectTransform>();
+                singleWallRect.anchoredPosition = new Vector2(25 + 50 * row, 50 * col);
+                singleWallRect.eulerAngles = new Vector3(0, 0, 90); 
+                allWalls.Add(singleWall);
+                break;
+
+            case TileSides.Left:
+                singleWall = Instantiate(Wall, Wall.transform.parent);
+                singleWall.SetActive(true);
+                singleWallRect = singleWall.GetComponent<RectTransform>();
+                singleWallRect.anchoredPosition = new Vector2(50 * row, 25 + 50 * col);
+                singleWallRect.eulerAngles = new Vector3(0, 0, 0); 
+                allWalls.Add(singleWall);
+                break;
+
+            case TileSides.Right:
+                singleWall = Instantiate(Wall, Wall.transform.parent);
+                singleWall.SetActive(true);
+                singleWallRect = singleWall.GetComponent<RectTransform>();
+                singleWallRect.anchoredPosition = new Vector2(50 + 50 * row, 25 + 50 * col);
+                singleWallRect.eulerAngles = new Vector3(0, 0, 0); 
+                allWalls.Add(singleWall);
+                break;
+
+        }
     }
 
     void SaveScreenSize()
@@ -76,7 +140,7 @@ public class SpawnMap : MonoBehaviour
         MapWidth = Screen.width - 20;
     }
 
-    void Refocus(){
+    public void Refocus(){
         // based on screen size and position of the PC:
         int newTop = 0;
         int newBottom = -400;
@@ -87,12 +151,12 @@ public class SpawnMap : MonoBehaviour
         int totalWidth = 150 + MapWidth;
 
         // height
-        if (MapHeight-25 > PlayerLoc.Player.anchoredPosition.y)
+        if (MapHeight-25 > PlayerController.Player.anchoredPosition.y)
         {
             newBottom = 0;
             newTop = -400;
         } 
-        else if (400 + 25 < PlayerLoc.Player.anchoredPosition.y)
+        else if (400 + 25 < PlayerController.Player.anchoredPosition.y)
         {
 
             //no change
@@ -100,17 +164,17 @@ public class SpawnMap : MonoBehaviour
         else
         {
             // center it 
-            newBottom = -1 * (int)(PlayerLoc.Player.anchoredPosition.y*400/totalHeight);
+            newBottom = -1 * (int)(PlayerController.Player.anchoredPosition.y*400/totalHeight);
             newTop = -400-newBottom;
         }
 
         // width
-        if (MapWidth - 25 > PlayerLoc.Player.anchoredPosition.x)
+        if (MapWidth - 25 > PlayerController.Player.anchoredPosition.x)
         {
             newRight = 0;
             newLeft = -150;
         }
-        else if (150 + 25 < PlayerLoc.Player.anchoredPosition.x)
+        else if (150 + 25 < PlayerController.Player.anchoredPosition.x)
         {
             // no change
 
@@ -118,11 +182,11 @@ public class SpawnMap : MonoBehaviour
         else
         {
             // center it 
-            newLeft = -1 *(int)(PlayerLoc.Player.anchoredPosition.x * 150 / totalWidth);
+            newLeft = -1 *(int)(PlayerController.Player.anchoredPosition.x * 150 / totalWidth);
             newRight = -150 - newLeft;
         }
 
-        Debug.Log(PlayerLoc.Player.anchoredPosition);
+        //Debug.Log(PlayerController.Player.anchoredPosition);
         //Debug.Log(ScrollRect.offsetMin);
         //Debug.Log(newLeft);
         //Debug.Log(newTop);
@@ -133,7 +197,27 @@ public class SpawnMap : MonoBehaviour
         ScrollRect.offsetMin = new Vector2(newRight, newBottom);
         ScrollRect.offsetMax = new Vector2(-newLeft, -newTop);
         //Debug.Log(ScrollRect.offsetMax);
-        PlayerLoc.ReadSides();
+        //PlayerController.ReadSides();
 
     }
+
+    
+    // turn based -- let enemy go:
+    public void PlayerHasMoved()
+    {
+        EnemyController.StartEnemyTurn();
+    }
+
+    // turn based -- let player go:
+    public void EnemyHasMoved()
+    {
+        PlayerController.ReadSides(); // reenable button of sides;
+    }
+
+    // when any enemy touches the player:
+
+
+    // when the player touches the goal:
+    
+
 }
